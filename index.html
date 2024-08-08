@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yudash Decrypt</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(to right, #f06, #48c6ef); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #333; }
+        .a { background-color: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); width: 90%; max-width: 600px; animation: b 1s ease-in-out; position: relative; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 2em; font-weight: 700; }
+        .c { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input[type="text"], textarea { width: 100%; padding: 15px; margin: 5px 0; border: 2px solid #ddd; border-radius: 15px; font-size: 1em; transition: border-color 0.3s ease, box-shadow 0.3s ease; position: relative; background-color: #f9f9f9; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        input[type="text"]:focus, textarea:focus { border-color: #007bff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); outline: none; }
+        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 15px; cursor: pointer; font-size: 1.2em; transition: background-color 0.3s ease, transform 0.2s ease; }
+        button:hover { background-color: #0056b3; }
+        button:active { transform: scale(0.98); }
+        @keyframes b { from { opacity: 0; } to { opacity: 1; } }
+        .d { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #007bff; color: white; padding: 10px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); font-size: 1em; white-space: nowrap; z-index: 10; }
+        .d:before { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -10px; border-width: 10px; border-style: solid; border-color: transparent transparent #007bff transparent; }
+        .e { position: relative; margin-top: 10px; }
+        textarea { resize: vertical; min-height: 150px; font-family: 'Courier New', Courier, monospace; font-size: 1em; }
+        .f { background: #e0e0e0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin: 10px 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <div class="a">
+        <h1>Yudash Decrypt</h1>
+        <div class="c">
+            <label for="k">Key:</label>
+            <input type="text" id="k" placeholder="Enter key">
+        </div>
+        <div class="c">
+            <label for="c">Ciphertext:</label>
+            <textarea id="c" placeholder="Enter ciphertext"></textarea>
+        </div>
+        <button onclick="d()">Decrypt</button>
+        <div class="e">
+            <div class="d">Decrypted Text</div>
+            <div class="c">
+                <label for="d">Decrypted Text:</label>
+                <textarea id="d" readonly></textarea>
+            </div>
+        </div>
+    </div>
+    <script>
+        function A(k) {
+            const b = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>?/';
+            const h = Array.from(k).reduce((s, c) => (s + c.charCodeAt(0)), 0);
+            const i = h % b.length;
+            const j = b.split('').sort((a, b) => (i % 2 === 0 ? a.localeCompare(b) : b.localeCompare(a))).join('');
+            return j;
+        }
+
+        function B(t, k, d = false) {
+            let a = A(k);
+            const b = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>?/';
+            let c = {};
+            b.split('').forEach((x, y) => { c[x] = a[y]; });
+
+            if (d) {
+                const e = Object.fromEntries(Object.entries(c).map(([f, g]) => [g, f]));
+                c = e;
+            }
+
+            return t.split('').map(x => c[x] || x).join('');
+        }
+
+        function d() {
+            const k = document.getElementById('k').value;
+            const c = document.getElementById('c').value;
+
+            try {
+                let t = B(c, k, true);
+                const j = CryptoJS.enc.Utf8.parse(k.padEnd(24, ' '));
+                t = CryptoJS.TripleDES.decrypt(t, j, { mode: CryptoJS.mode.ECB }).toString(CryptoJS.enc.Utf8);
+                const i = CryptoJS.enc.Utf8.parse(k.padEnd(16, ' '));
+                t = CryptoJS.AES.decrypt(t, i, { mode: CryptoJS.mode.ECB }).toString(CryptoJS.enc.Utf8);
+                const h = CryptoJS.enc.Utf8.parse(k.padEnd(8, ' '));
+                t = CryptoJS.DES.decrypt(t, h, { mode: CryptoJS.mode.ECB }).toString(CryptoJS.enc.Utf8);
+                t = CryptoJS.AES.decrypt(t, i, { mode: CryptoJS.mode.ECB }).toString(CryptoJS.enc.Utf8);
+                t = CryptoJS.DES.decrypt(t, h, { mode: CryptoJS.mode.ECB }).toString(CryptoJS.enc.Utf8);
+                t = B(t, k, true);
+                document.getElementById('d').value = t;
+            } catch (e) {
+                console.error("Error:", e);
+                document.getElementById('d').value = "Decryption error. Please check key and ciphertext.";
+            }
+        }
+    </script>
+</body>
+</html>
